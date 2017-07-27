@@ -1,6 +1,4 @@
-
 local lppb = Proto("lppb","Length Prefixed Protocol Buffers");
-info("starting")
 len_F = ProtoField.string("lppb.len","Length")
 lppb.fields = {len_F}
 
