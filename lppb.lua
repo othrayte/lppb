@@ -1,15 +1,24 @@
-local lppb = Proto("lppb","Length Prefixed Protocol Buffers");
 
+local lppb = Proto("lppb","Length Prefixed Protocol Buffers");
+info("starting")
 len_F = ProtoField.string("lppb.len","Length")
 lppb.fields = {len_F}
 
 lppb.prefs.port = Pref.uint("TCP Port:", 0, "")
 lppb.prefs.schema = Pref.string("Schema:", "", "E.g. MY.PROTOBUF.MESSAGE")
 lppb.prefs.prefix_size = Pref.uint("Prefix size (bytes):", 4, "")
+lppb.prefs.prefix_endianess = Pref.bool("Little Endian ?", true, "Check this to decode the length prefix as if it were encoded as Little Endian")
 
 function get_message_len(tvb, pinfo, tree)
-  local len = tvb:range(0, lppb.prefs.prefix_size):uint()
-  return len + lppb.prefs.prefix_size
+  local length_buf = tvb:range(0, lppb.prefs.prefix_size)
+  local len = 0
+  if lppb.prefs.prefix_endianess then
+    len = Struct.unpack('<I', length_buf:string())
+  else
+    len = length_buf:uint()
+  end
+  local result = len + lppb.prefs.prefix_size
+  return result
 end
 
 function dissect_message(tvb, pinfo, tree)
